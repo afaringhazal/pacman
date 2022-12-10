@@ -216,32 +216,54 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+# def aStarSearch(problem, heuristic=nullHeuristic):
+#     """Search the node that has the lowest combined cost and heuristic first."""
+#     "*** YOUR CODE HERE ***"
+#     ## f(n) = g(n) + h(n)
+#     import  searchAgents
+#
+#     frontier = util.PriorityQueue()
+#     exploreState = []
+#     starState = problem.getStartState();
+#     starNode = (starState, [], 0)
+#     frontier.push(starNode, 0)
+#     while not frontier.isEmpty():
+#         myNode = frontier.pop()
+#         (myState, actions, costs) = myNode
+#         if problem.isGoalState(myState):
+#             return actions
+#         if myState in exploreState:
+#             continue
+#         exploreState.append(myState)
+#         childeren = problem.getSuccessors(myState)
+#         for (state, act, cost) in childeren:
+#             newAct = actions + [act]
+#             newCost = costs + cost + searchAgents.manhattanHeuristic(state , problem)
+#             volunteerNode = (state, newAct, newCost)
+#             frontier.update(volunteerNode, newCost)
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    ## f(n) = g(n) + h(n)
-    import  searchAgents
-
+    # Use a priority queue, so the cost of actions is calculated with a provided heuristic
     frontier = util.PriorityQueue()
-    exploreState = []
-    starState = problem.getStartState();
-    starNode = (starState, [], 0)
-    frontier.push(starNode, 0)
-    while not frontier.isEmpty():
-        myNode = frontier.pop()
-        (myState, actions, costs) = myNode
-        if problem.isGoalState(myState):
-            return actions
-        if myState in exploreState:
-            continue
-        exploreState.append(myState)
-        childeren = problem.getSuccessors(myState)
-        for (state, act, cost) in childeren:
-            newAct = actions + [act]
-            newCost = costs + cost + searchAgents.manhattanHeuristic(state , problem)
-            volunteerNode = (state, newAct, newCost)
-            frontier.update(volunteerNode, newCost)
-
+    # Make an empty list of explored nodes
+    visited = []
+    # Make an empty list of actions
+    actionList = []
+    # Place the starting point in the priority queue
+    frontier.push((problem.getStartState(), actionList), heuristic(problem.getStartState(), problem))
+    while frontier:
+        node, actions = frontier.pop()
+        if not node in visited:
+            visited.append(node)
+            if problem.isGoalState(node):
+                return actions
+            for successor in problem.getSuccessors(node):
+                coordinate, direction, cost = successor
+                nextActions = actions + [direction]
+                nextCost = problem.getCostOfActions(nextActions) + heuristic(coordinate, problem)
+                frontier.push((coordinate, nextActions), nextCost)
+    return []
 
 
 # Abbreviations

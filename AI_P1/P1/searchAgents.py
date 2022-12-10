@@ -285,6 +285,22 @@ class CornersProblem(search.SearchProblem):
             if not startingGameState.hasFood(*corner):
                 print('Warning: no food in corner ' + str(corner))
         self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
+
+
+
+
+        # self.startingGameState = startingGameState
+        # cornerVisited = [False ,False , False , False]
+        # if(self.corners[0] == self.startingPosition):
+        #     cornerVisited[0] = True
+        # if(self.corners[1] == self.startingPosition):
+        #     cornerVisited[1] = True
+        # if(self.corners[2] == self.startingPosition):
+        #     cornerVisited[2] = True
+        # if(self.corners[3] == self.startingPosition):
+        #     cornerVisited[3] = True
+        #
+        # self.startingPosition =(self.startingPosition , tuple(cornerVisited))
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
@@ -295,15 +311,17 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        corners_visited = []
+        return self.startingPosition, corners_visited
+
+        # return self.startingPosition
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
-
+        return len(state[1]) == 4
     def getSuccessors(self, state):
         """
         Returns successor states, the actions they require, and a cost of 1.
@@ -314,17 +332,33 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
-
         successors = []
-        for action in [Directions.NORTH, Directions.WEST, Directions.SOUTH, Directions.EAST]:
+        current_state = state[0]
+        current_visited_corners = state[1]
+
+        for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
+            x,y = current_state
+            dx, dy = Actions.directionToVector(action)
 
-            "*** YOUR CODE HERE ***"
+            nextx, nexty = int(x + dx), int(y + dy)
+            next_state = (nextx, nexty)
+            cost = 1
+            hitsWall = self.walls[nextx][nexty]
+            if not hitsWall:
+                if next_state in self.corners and next_state not in current_visited_corners:
+                    """
+                    Next state contains a newly visited corner.
+                    This next successor will have visited one corner more than the current state. 
+                    """
+                    new_visited_corners = [next_state] + current_visited_corners
+                    successors.append(((next_state, new_visited_corners), action, cost))
+                else:
+                    """
+                    This next successor will contain the same list of visited corners as the current state.
+                    """
+                    successors.append(((next_state, current_visited_corners), action, cost))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -335,7 +369,7 @@ class CornersProblem(search.SearchProblem):
         include an illegal move, return 999999.  This is implemented for you.
         """
         if actions == None: return 999999
-        x,y= self.startingPosition
+        x,y= self.startingPosition #[0]
         for action in actions:
             dx, dy = Actions.directionToVector(action)
             x, y = int(x + dx), int(y + dy)
@@ -344,6 +378,26 @@ class CornersProblem(search.SearchProblem):
 
 
 def cornersHeuristic(state, problem):
+    corners = problem.corners # These are the corner coordinates
+    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+    "*** YOUR CODE HERE ***"
+    unvisited = [] # Unvisited corners
+    visited = state[1] # Visited corners
+    node = state[0] # Current node
+    heuristic = 0 # Heuristic value
+    # Find and append all the corners that haven't been visited yet
+    for corner in corners:
+        if not corner in visited:
+            unvisited.append(corner)
+    # Find the sum of the shortest distances between the unvisited corners
+    # using manhattanDistance, which never returns a negative
+    while unvisited:
+        distance, corner = min([(util.manhattanDistance(node, corner), corner) \
+                                for corner in unvisited])
+        heuristic += distance
+        node = corner
+        unvisited.remove(corner)
+    return heuristic
     """
     A heuristic for the CornersProblem that you defined.
 
@@ -356,11 +410,27 @@ def cornersHeuristic(state, problem):
     shortest path from the state to a goal of the problem; i.e.  it should be
     admissible (as well as consistent).
     """
-    corners = problem.corners # These are the corner coordinates
-    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+    # corners = problem.corners # These are the corner coordinates
+    # walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+    # print("++++++")
+    # print(state)
+    # closestPoint = 0
+    # closestPointCost = util.manhattanDistance( location, goalArray[0] )
+    #
+    # for j in range(len(goalArray)):
+    #     #calculate distance between current state to corner
+    #     cornerLocation = goalArray[j]
+    #     lengthToCorner = util.manhattanDistance( location, cornerLocation )
+    #
+    #     if lengthToCorner < closestPointCost:
+    #         closestPoint = j
+    #         closestPointCost = lengthToCorner
+    #
+    # return (closestPoint, closestPointCost)
+
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    # return 0 # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
